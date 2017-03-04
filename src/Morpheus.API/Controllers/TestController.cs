@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Morpheus.API.Controllers
 {
@@ -17,14 +18,13 @@ namespace Morpheus.API.Controllers
 		}
 
 		[HttpGet]
-		public IEnumerable<User> Get()
+		public async Task<string> Get()
 		{
 			var sw = Stopwatch.StartNew();
 			try
 			{
 				_logger.LogDebug($"Get");
-				return null;
-				
+				return await Task.Run(() => "success");
 			}
 			catch (System.Exception)
 			{
