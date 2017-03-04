@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+</head>
+<body>
+	<button id="facebook-login">Facebook Login</button>
+
+	<div id="who-is"></div>
+
+	<button id="api-list-users">API List Users</button>
+
+	<div id="response"></div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/3.6.9/firebase.js"></script>
+	<script>
+		// Initialize Firebase
+		var config = {
+			apiKey: "AIzaSyBzPNoRcUwLSBsvRN5cP3z1QIRTTADXo7o",
+			authDomain: "marias-f2fd7.firebaseapp.com",
+			databaseURL: "https://marias-f2fd7.firebaseio.com",
+			storageBucket: "marias-f2fd7.appspot.com",
+			messagingSenderId: "138774922456"
+		};
+		firebase.initializeApp(config);
+
+		var token;
+
+		$(function () {
+			firebase.auth().onAuthStateChanged(function (user) {
+				if (user) {
+					var user = firebase.auth().currentUser;
+					var name, email, photoUrl, uid;
+					name = user.displayName;
+					email = user.email;
+					photoUrl = user.photoURL;
+					uid = user.uid;
+					user.getToken().then(function (t) {
+						token = t;
+						$("#who-is").append("<hr>TOKEN: <strong>" + t + "</strong><hr>");
+					});
+
+					$("#who-is").html(name + "<br>" + email + "<br>" + photoUrl + "<br>" + uid + "<br>")
+
+					$("#facebook-login").hide();
+
+				} else {
+					alert("User is NOK");
+					$("#api-list-users").hide();
+				}
+			});
+
+			$("#facebook-login").click(function () { loginFacebook(); });
+			$("#api-list-users").click(function () { loginAPI(); });
+
+		});
+
+		function loginAPI()
+		{
+			$.ajax({
+				url: "/v1/Users/",
+				dataType: 'json',
+				type: 'GET',
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader("Accept", "application/json");
+					xhr.setRequestHeader("Content-Type", "application/json");
+					xhr.setRequestHeader("Authorization", "Bearer " + token);
+				},
+				error: function (ex) {
+					console.log(ex.status + " - " + ex.statusText);
+				},
+				success: function (data) {
+
+					console.log(data);
+
+					$("#response").html("");
+
+					for (var i = 0; i < data.length; i++) {
+						var d = data[i];
+						$("#response").append("uid: " + d.uId + "<br>");
+						$("#response").append("name: " + d.name + "<br>");
+						$("#response").append("email: " + d.email + "<br>");
+					}
+				}
+			});
+		}
+
+		function loginFacebook() {
+			var provider = new firebase.auth.FacebookAuthProvider();
+
+			firebase.auth().signInWithPopup(provider).then(function (result) {
+				var token = result.credential.accessToken;
+				var user = result.user;
+			}).catch(function (error) {
+				var errorCode = error.code;
+				var errorMessage = error.message;
+				var email = error.email;
+				var credential = error.credential;
+			});
+		}
+	</script>
+</body>
+</html>
