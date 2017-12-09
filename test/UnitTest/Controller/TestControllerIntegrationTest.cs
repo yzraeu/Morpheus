@@ -13,7 +13,7 @@ namespace UnitTest.Controllers
         }
 
         [Fact]
-        public async Task DeveRetornarSucesso(){
+        public async Task ShouldReturnSuccess(){
             var response = await Client.GetAsync(BaseUrl);
             response.EnsureSuccessStatusCode();
             
