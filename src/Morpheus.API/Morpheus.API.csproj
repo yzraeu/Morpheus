@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <PackageId>Morpheus.API</PackageId>
     <RuntimeIdentifiers>win10-x64;debian.8-x64</RuntimeIdentifiers>
-    <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>1.1.2</RuntimeFrameworkVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6</PackageTargetFallback>
   </PropertyGroup>
 
