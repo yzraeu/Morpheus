@@ -1,13 +1,13 @@
 # Morpheus
-Boilerplate .NET Core API using the Firebase Auth + JWT token. 
+Boilerplate .NET Core API using JWT token. 
 
-This was created mainly for a couple of projects that I was working on that needed this basic .NET Core architecture and easily integrates with Android clients using the Firebase Auth. Also to learn a thing or two about the new Framework.
+This was created mainly for a couple of projects that I was working on that needed this basic .NET Core architecture and easily integrates with Android clients using the ~~Firebase Auth~~ simple JWT. Also to learn a thing or two about the new Framework.
 
 ## What is JWT?
 Seriously, read about it here: http://jwt.io
 
 ## Other things to know
-It's using MySQL as database
+~~It's using MySQL as database~~ Removing any db dependency, this project needs to be clear. 
 
 ## Missing features
 - Entity Framework Migrations
