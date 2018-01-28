@@ -1,42 +1,59 @@
-﻿using Morpheus.API.Filters;
-using Morpheus.API.Middlewares;
-using Morpheus.Repository.Interfaces;
-using Morpheus.Repository.MySQL;
-using Morpheus.Service;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Morpheus.API.Filters;
+using Morpheus.API.Middlewares;
+using Morpheus.Repository.Interfaces;
+using Morpheus.Repository.MySQL;
+using Morpheus.Service;
 using MySQL.Data.EntityFrameworkCore.Extensions;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace Morpheus.API
 {
-	public class Startup
+    public class Startup
 	{
-		public Startup(IHostingEnvironment env)
+        public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration)
 		{
-			var builder = new ConfigurationBuilder()
-				.SetBasePath(env.ContentRootPath)
-				.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-				.AddEnvironmentVariables();
-			Configuration = builder.Build();
+            Configuration = configuration;
 		}
-
-		public IConfigurationRoot Configuration { get; }
-
+        
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddMvc(options =>
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                })
+                .AddJwtBearer(cfg =>
+                {
+                    cfg.RequireHttpsMetadata = false;
+                    cfg.SaveToken = true;
+                    cfg.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = Configuration["JwtIssuer"],
+                        ValidAudience = Configuration["JwtIssuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                        ClockSkew = TimeSpan.Zero // remove delay of token when expire
+                    };
+                });
+
+            services.AddMvc(options =>
 			{
 				options.Filters.Add(typeof(LogFilter));
-				// TODO: Uncomment to use the basic AuthorizationFilter
-				// options.Filters.Add(typeof(BasicAuthorizationFilter));
 				options.Filters.Add(typeof(ModelValidatorFilter));
 			});
 
@@ -81,20 +98,7 @@ namespace Morpheus.API
 				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Morpheus-API");
 			});
 
-			app.UseJwtBearerAuthentication(new JwtBearerOptions
-			{
-				AutomaticAuthenticate = true,
-				IncludeErrorDetails = true,
-				Authority = "https://securetoken.google.com/{PROJECT_ID}",
-				TokenValidationParameters = new TokenValidationParameters
-				{
-					ValidateIssuer = true,
-					ValidIssuer = "https://securetoken.google.com/{PROJECT_ID}",
-					ValidateAudience = true,
-					ValidAudience = "{PROJECT_ID}",
-					ValidateLifetime = true,
-				},
-			});
+            app.UseAuthentication();
 
 			app.UseDefaultFiles();
 
